@@ -25,11 +25,14 @@ public final class R {
         public static final int activity_vertical_margin=0x7f050001;
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
-        public static final int image_of_the_day=0x7f020001;
+        public static final int ic_action_refresh=0x7f020000;
+        public static final int ic_action_share=0x7f020001;
+        public static final int ic_launcher=0x7f020002;
+        public static final int image_of_the_day=0x7f020003;
     }
     public static final class id {
-        public static final int action_settings=0x7f090004;
+        public static final int action_refresh=0x7f090004;
+        public static final int action_share=0x7f090005;
         public static final int data=0x7f090001;
         public static final int descricao=0x7f090002;
         public static final int imagem=0x7f090003;
@@ -42,7 +45,9 @@ public final class R {
         public static final int main=0x7f080000;
     }
     public static final class string {
+        public static final int action_refresh=0x7f060004;
         public static final int action_settings=0x7f060001;
+        public static final int action_share=0x7f060005;
         public static final int app_name=0x7f060000;
         public static final int hello_world=0x7f060002;
         public static final int loading=0x7f060003;
