@@ -3,7 +3,7 @@ package com.example.todolist.model;
 
 public class TodoItem {
 	private Long id;
-	private String text;
+	private String texto;
 	private int done;
 	
 	
@@ -16,11 +16,11 @@ public class TodoItem {
 	}
 
 	public String getText() {
-		return text;
+		return texto;
 	}
 
 	public void setText(String text) {
-		this.text = text;
+		this.texto = text;
 	}
 
 	public int getDone() {

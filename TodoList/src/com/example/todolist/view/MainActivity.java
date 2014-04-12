@@ -26,42 +26,73 @@ import android.widget.TextView;
 import android.widget.TextView.BufferType;
 
 import com.example.todolist.R;
+import com.example.todolist.model.TodoDAO;
+import com.example.todolist.model.TodoDB;
 import com.example.todolist.model.TodoItem;
 
 public class MainActivity extends Activity implements View.OnKeyListener {
 	private TodoListAdapter listAdapter;
-	private List<TodoItem> listTodo;
+	// private List<TodoItem> listTodo; // sem banco
+	private TodoDB todoDb;
+	private TodoDAO todoDao;
+
+	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		listTodo = new ArrayList<TodoItem>();
-		listAdapter = new TodoListAdapter(this, R.layout.list_row, listTodo);
+
+		todoDb = new TodoDB(this);
+		todoDao = new TodoDAO(todoDb.getWritableDatabase()/*
+														 * tem dois tipos,
+														 * leitura e esse que é
+														 * leitura e escrita
+														 */);
+
+		//listTodo = new ArrayList<TodoItem>();
+		
+		listAdapter = new TodoListAdapter(this, R.layout.list_row, todoDao.list()/*listTodo*/);
 		ListView listView = (ListView) findViewById(R.id.listaTodo);
 		listView.setAdapter(listAdapter);
 		EditText edit = (EditText) findViewById(R.id.title);
 		edit.setOnKeyListener(this);
 	}
 	
+	public void refresh() {
+		listAdapter.clear();
+		List<TodoItem> list = todoDao.list();
+		for(TodoItem item : list){
+			listAdapter.add(item);
+		}
+		listAdapter.notifyDataSetChanged();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		todoDb.close();
+	}
+
 	@Override
 	protected void onResume() {
 		super.onResume();
-	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-	String listName = prefs.getString("pref_listname", "");
-	setTitle(listName);
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		String listName = prefs.getString("pref_listname", "");
+		setTitle(listName);
 	}
-	
-	
-	public boolean onOptionsItemSelected(MenuItem item){
-			switch (item.getItemId()) {
-			case R.id.action_settings:
-				startActivity(new Intent(this, SettingsActivity.class));
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
-			}
+
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_settings:
+			startActivity(new Intent(this, SettingsActivity.class));
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
 		}
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -78,8 +109,9 @@ public class MainActivity extends Activity implements View.OnKeyListener {
 				if (edit.getText().length() > 0) {
 					TodoItem item = new TodoItem();
 					item.setText(edit.getText().toString());
-					listTodo.add(item);
-					listAdapter.notifyDataSetChanged();
+					/*listTodo*/todoDao.persist(item);
+					refresh();
+					//listAdapter.notifyDataSetChanged();
 					edit.setText("");
 				}
 				return true;
@@ -100,18 +132,19 @@ public class MainActivity extends Activity implements View.OnKeyListener {
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
 			TodoItem item = (TodoItem) v.getTag();
-			if(item != null) {
+			if (item != null) {
 				if (v.getId() == R.id.done) {
-					if (item.getDone()== 0 ){
+					if (item.getDone() == 0) {
 						item.setDone(1);
 					} else
 						item.setDone(0);
-					
-				} else if (v.getId() == R.id.delete){
-					listTodo.remove(item);
+					todoDao.persist(item);
+				} else if (v.getId() == R.id.delete) {
+					todoDao.remove(item.getId());
 				}
 			}
-			listAdapter.notifyDataSetChanged();
+			refresh();
+			//listAdapter.notifyDataSetChanged();
 		}
 
 		@Override
@@ -130,15 +163,17 @@ public class MainActivity extends Activity implements View.OnKeyListener {
 			text.setOnClickListener(this);
 			text.setTag(todoItem);
 
-			ImageView delete = (ImageView) convertView.findViewById(R.id.delete);
+			ImageView delete = (ImageView) convertView
+					.findViewById(R.id.delete);
 			delete.setOnClickListener(this);
 			delete.setTag(todoItem);
 
 			done.setChecked(todoItem.getDone() == 1);
-			if(todoItem.getDone() == 1) {
+			if (todoItem.getDone() == 1) {
 				SpannableString span = new SpannableString(todoItem.getText());
-				span.setSpan(new StrikethroughSpan(), 0, todoItem.getText().length(), 0);
-				text.setText(span,BufferType.SPANNABLE);
+				span.setSpan(new StrikethroughSpan(), 0, todoItem.getText()
+						.length(), 0);
+				text.setText(span, BufferType.SPANNABLE);
 			} else {
 				text.setText(todoItem.getText());
 			}
